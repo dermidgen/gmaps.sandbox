@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+	<title>Google Maps</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=true_or_false&amp;key=ABQIAAAAo9eX1xqjliUuJFmf4f5nARS-XHv4JaeT-A3tMwD6P6lrenSLvhS44KO-U0dXMRPuNbWn_TcimTKcaA" type="text/javascript"></script>
+
+	<script type="text/javascript">
+	
+	function initialize() {
+      if (GBrowserIsCompatible()) {
+        var map = new GMap2(document.getElementById("map_canvas"));
+        map.setCenter(new GLatLng(37.4419, -122.1419), 13);
+        map.setUIToDefault();
+      }
+    }
+    
+    var MapControl = function()
+    {
+		this.map = new GMap2(document.getElementById('map_canvas'));
+		this.animationMarker = null;
+		this.animationEndPoint = null;
+	};
+	
+	MapControl.prototype.getMap = function()
+	{
+		return this.map;
+	};
+	
+	MapControl.prototype.getAnimationMarker = function(startPoint)
+	{
+		if (this.animationMarker == null)
+		{
+			this.map.setCenter(new GLatLng(37.4419, -122.1419), 13);
+			
+			var bounds = this.map.getBounds();
+			var southWest = bounds.getSouthWest();
+			var northEast = bounds.getNorthEast();
+			var lngSpan = northEast.lng() - southWest.lng();
+			var latSpan = northEast.lat() - southWest.lat();
+			
+			var startLat = southWest.lat();
+			var startLng = southWest.lng();
+			
+			var point = (startPoint == null) ? new GLatLng(startLat, startLng) : startPoint;
+			this.animationMarker = new GMarker(point);
+			
+			this.map.addOverlay(this.animationMarker);
+			this.map.setUIToDefault();
+		}
+		
+		return this.animationMarker;
+	};
+	
+	MapControl.prototype.setAnimationEndPoint = function(endPoint)
+	{
+		if (!endPoint)
+		{
+			var bounds = this.map.getBounds();
+			var southWest = bounds.getSouthWest();
+			var northEast = bounds.getNorthEast();
+			var lngSpan = northEast.lng() - southWest.lng();
+			var latSpan = northEast.lat() - southWest.lat();
+			var endPoint = new GLatLng(southWest.lat() + latSpan * Math.random(), southWest.lng() + lngSpan * Math.random());
+		}
+
+		this.animationEndPoint = endPoint;
+
+	};
+	
+	MapControl.prototype.getAnimationEndPoint = function()
+	{
+		return this.animationEndPoint;
+	};
+	
+	MapControl.adjustMap = function()
+	{
+		var map = MapControl.GetInstance().getMap();
+		map.setCenter(new GLatLng(37.423, -122.1), 13);
+		map.setUIToDefault();
+	};
+	
+	MapControl.setMarkers = function()
+	{
+		var map = MapControl.GetInstance().getMap();
+		map.setCenter(new GLatLng(37.4419, -122.1419), 13);
+		
+		var bounds = map.getBounds();
+		var southWest = bounds.getSouthWest();
+		var northEast = bounds.getNorthEast();
+		var lngSpan = northEast.lng() - southWest.lng();
+		var latSpan = northEast.lat() - southWest.lat();
+		
+		for (var i = 0; i < 10; i++) {
+			var point = new GLatLng(southWest.lat() + latSpan * Math.random(),
+				southWest.lng() + lngSpan * Math.random());
+			map.addOverlay(new GMarker(point));
+		}
+		
+		map.setUIToDefault();
+	};
+	
+	MapControl.animateMarker = function()
+	{
+		var marker = MapControl.GetInstance().getAnimationMarker();
+		var latlng = marker.getLatLng();
+		
+		var startLat = latlng.lat();
+		var startLng = latlng.lng();
+		
+		var endLat = startLat + .022;
+		var endLng = startLng + .062;
+		
+		var moveMarker = function()
+		{
+			var currentLat = marker.getLatLng().lat();
+			var currentLng = marker.getLatLng().lng();
+			
+			var newLat = currentLat + .001;
+			var newLng = currentLng + .001;
+			
+			if (currentLat >= endLat && currentLng >= currentLng) return;
+			
+			marker.setLatLng(new GLatLng(newLat, newLng));
+		};
+		
+		MapControl.timer = setInterval(moveMarker, 20);
+
+	};
+	
+	MapControl.slideMarker = function()
+	{
+		var control = MapControl.GetInstance();
+		var map = control.getMap();
+		map.setCenter(new GLatLng(37.4419, -122.1419), 13);
+		
+		var bounds = map.getBounds();
+		var southWest = bounds.getSouthWest();
+		var northEast = bounds.getNorthEast();
+		var lngSpan = northEast.lng() - southWest.lng();
+		var latSpan = northEast.lat() - southWest.lat();
+
+		var startPoint = new GLatLng(southWest.lat() + latSpan * Math.random(), southWest.lng() + lngSpan * Math.random());
+		control.setAnimationEndPoint(new GLatLng(southWest.lat() + latSpan * Math.random(), southWest.lng() + lngSpan * Math.random()));
+		
+		var marker = control.getAnimationMarker(startPoint);
+		var latlng = marker.getLatLng();
+		
+		var startLat = latlng.lat();
+		var startLng = latlng.lng();
+		
+		var moveMarker = function()
+		{
+			var endPoint = control.getAnimationEndPoint();
+			var endLat = endPoint.lat();
+			var endLng = endPoint.lng();
+
+			var currentLat = marker.getLatLng().lat();
+			var currentLng = marker.getLatLng().lng();
+			
+			var easing = 5;
+			
+			var mvLat = currentLat + ((endLat - currentLat) / easing);
+			var mvLng = currentLng + ((endLng - currentLng) / easing)
+			
+			var latTest = function()
+			{
+				if ((endLat - currentLat) < .000001 && (endLat - currentLat) > -.000001) return true;
+				
+				return false;
+			};
+			
+			var lngTest = function()
+			{
+				if ((endLng - currentLng) < .000001 && (endLng - currentLng) > -.000001) return true;
+				
+				return false;
+			};
+			
+			if (latTest() && lngTest()) {
+				console.log('Killing Timer');
+				clearInterval(MapControl.timer);
+				MapControl.timer = null;
+				control.animationEndPoint = null;
+				return;
+			}
+			
+			//console.log('Moving from ' + currentLat + ':' + currentLng + ' to ' + mvLat + ':' + mvLng);
+			
+			marker.setLatLng(new GLatLng(mvLat,	mvLng));
+		};
+		
+		if (!MapControl.timer) MapControl.timer = setInterval(moveMarker, 20);
+	};
+	
+	MapControl.clearMarkers = function()
+	{
+		var map = MapControl.GetInstance().getMap();
+		var control = MapControl.GetInstance();
+		
+		control.animationMarker = null;
+		map.clearOverlays();
+		
+		if (MapControl.timer != null) {
+			clearInterval(MapControl.timer);
+			MapControl.timer = null;
+		}
+	};
+	
+	MapControl.timer = null;
+	MapControl.instance = null;
+	MapControl.GetInstance = function()
+	{
+		if (MapControl.instance == null) MapControl.instance = new MapControl();
+		return MapControl.instance;
+	};
+    
+	</script>
+
+</head>
+
+<body onload="initialize()" onunload="GUnload()">
+	<div id="map_canvas" style="width: 500px; height: 300px"></div>
+	<div>
+		<button onclick="MapControl.adjustMap()">Adjust Map</button>
+		<button onclick="MapControl.setMarkers()">Set Markers</button>
+		<button onclick="MapControl.animateMarker()">Animate Marker</button>
+		<button onclick="MapControl.slideMarker()">Slide Marker</button>
+		<button onclick="MapControl.clearMarkers()">Clear Markers</button>
+	</div>
+</body>
+</html>
